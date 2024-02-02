@@ -1,0 +1,19 @@
+<template>
+    <!-- A paragraph element displaying a greeting message -->
+    <p>Hello there!</p>
+
+    <!-- A conditional template that renders if 'accountsData' is true (i.e., if it exists) -->
+    <template if:true={accountsData}>
+
+        <!-- A loop that iterates over each 'account' in 'accountsData' -->
+        <template for:each={accountsData} for:item="account">
+
+            <!-- A div element for each 'account', with a unique key value equal to the account's Id -->
+            <div key={account.Id}>
+
+                <!-- A paragraph element displaying the name of the 'account' -->
+                <p>{account.Name}</p>
+            </div>
+        </template>
+    </template>
+</template>

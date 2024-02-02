@@ -1,35 +1,60 @@
-# This is an example Starter pipeline configuration
-# Use a skeleton to build, test and deploy using manual and parallel steps
+# This file is a sample build configuration for Docker.
+# See the guides at https://confluence.atlassian.com/x/O1toN for more examples.
+# Only use spaces to indent your.yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-
-image: atlassian/default-image:3
-
+image: salesforce/salesforcedx
 pipelines:
-  default:
-    - parallel:
+  branches:
+    sub_uat: # This branch is for validating changes in UAT environment
       - step:
-          name: 'Build and Test'
+          name: Validate Changes in UAT
           script:
-            - echo "Your build and test goes here..."
+          - echo "Validation Started in UAT" # Debug statement
+          - export MDAPI_DEPLOYDIR=FirstProject/force-app/main/default # Set the metadata deploy directory
+          - export INSTANCEURL=https://test.salesforce.com # Set the instance URL for UAT
+          - export ALIAS=qa # Set the alias for UAT
+          - export TESTLEVEL=RunLocalTests # Set the test level for deployment
+          - openssl enc -nosalt -aes-256-cbc -d -in assets/server1.key.enc -out assets/server.key -base64 -K $DECRYPTION_KEY_UAT -iv $DECRYPTION_IV_UAT # Decrypt the server key for UAT
+          - sfdx force:auth:jwt:grant --instanceurl $INSTANCEURL --clientid $CONSUMER_KEY_UAT --jwtkeyfile assets/server.key --username $USERNAME_UAT --setalias $ALIAS # Authenticate to UAT using JWT
+          - sfdx force:mdapi:deploy --checkonly --wait 10 --deploydir $MDAPI_DEPLOYDIR --targetusername $ALIAS --testlevel $TESTLEVEL # Deploy the metadata to UAT in check-only mode
+          - echo "Validation completed in UAT" # Debug statement
+    main_uat: # This branch is for deploying changes in UAT environment
       - step:
-          name: 'Lint'
+          name: Deploy Changes in UAT
           script:
-            - echo "Your linting goes here..."
+          - echo "Deployment Started in UAT" # Debug statement
+          - export MDAPI_DEPLOYDIR=FirstProject/force-app/main/default # Set the metadata deploy directory
+          - export INSTANCEURL=https://test.salesforce.com # Set the instance URL for UAT
+          - export ALIAS=qa # Set the alias for UAT
+          - export TESTLEVEL=RunLocalTests # Set the test level for deployment
+          - openssl enc -nosalt -aes-256-cbc -d -in assets/server1.key.enc -out assets/server.key -base64 -K $DECRYPTION_KEY_UAT -iv $DECRYPTION_IV_UAT # Decrypt the server key for UAT
+          - sfdx force:auth:jwt:grant --instanceurl $INSTANCEURL --clientid $CONSUMER_KEY_UAT --jwtkeyfile assets/server.key --username $USERNAME_UAT --setalias $ALIAS # Authenticate to UAT using JWT
+          - sfdx force:mdapi:deploy --wait 10 --deploydir $MDAPI_DEPLOYDIR --targetusername $ALIAS --testlevel $TESTLEVEL # Deploy the metadata to UAT
+          - echo "Deployment completed in UAT" # Debug statement
+    sub_main: # This branch is for validating changes in Prod environment
       - step:
-          name: 'Security scan'
+          name: Validate Changes in Prod
           script:
-            - echo "Your security scan goes here..."
-
-    # The following deployment steps will be executed for each pipeline run. To configure your steps and conditionally deploy see https://support.atlassian.com/bitbucket-cloud/docs/configure-bitbucket-pipelinesyml/
-    - step:
-        name: 'Deployment to Staging'
-        deployment: staging
-        script:
-          - echo "Your deployment to staging script goes here..."
-    - step:
-        name: 'Deployment to Production'
-        deployment: production
-        trigger: 'manual'
-        script:
-          - echo "Your deployment to production script goes here..."
+          - echo "Validation Started in Prod" # Debug statement
+          - export MDAPI_DEPLOYDIR=FirstProject/force-app/main/default # Set the metadata deploy directory
+          - export INSTANCEURL=https://login.salesforce.com # Set the instance URL for Prod
+          - export ALIAS=qa # Set the alias for Prod
+          - export TESTLEVEL=RunLocalTests # Set the test level for deployment
+          - openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out assets/server.key -base64 -K $DECRYPTION_KEY_PROD -iv $DECRYPTION_IV_PROD # Decrypt the server key for Prod
+          - sfdx force:auth:jwt:grant --instanceurl $INSTANCEURL --clientid $CONSUMER_KEY_PROD --jwtkeyfile assets/server.key --username $USERNAME_PROD --setalias $ALIAS # Authenticate to Prod using JWT
+          - sfdx force:mdapi:deploy --checkonly --wait 10 --deploydir $MDAPI_DEPLOYDIR --targetusername $ALIAS --testlevel $TESTLEVEL # Deploy the metadata to Prod in check-only mode
+          - echo "Validation completed in Prod" # Debug statement
+    main: # This branch is for deploying changes in Prod environment
+      - step:
+          name: Deploy changes in Prod
+          script:
+          - echo "Deployment Started in Prod" # Debug statement
+          - export MDAPI_DEPLOYDIR=FirstProject/force-app/main/default # Set the metadata deploy directory
+          - export INSTANCEURL=https://login.salesforce.com # Set the instance URL for Prod
+          - export ALIAS=qa # Set the alias for Prod
+          - export TESTLEVEL=RunLocalTests # Set the test level for deployment
+          - openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out assets/server.key -base64 -K $DECRYPTION_KEY_PROD -iv $DECRYPTION_IV_PROD # Decrypt the server key for Prod
+          - sfdx force:auth:jwt:grant --instanceurl $INSTANCEURL --clientid $CONSUMER_KEY_PROD --jwtkeyfile assets/server.key --username $USERNAME_PROD --setalias $ALIAS # Authenticate to Prod using JWT
+          - sfdx force:mdapi:deploy --wait 10 --deploydir $MDAPI_DEPLOYDIR --targetusername $ALIAS --testlevel $TESTLEVEL # Deploy the metadata to Prod
+          - echo "Deployment completed in Prod" # Debug statement
