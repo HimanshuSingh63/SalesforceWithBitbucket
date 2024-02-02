@@ -29,7 +29,7 @@ pipelines:
           - export ALIAS=qa # Set the alias for UAT
           - export TESTLEVEL=RunLocalTests # Set the test level for deployment
           - openssl enc -nosalt -aes-256-cbc -d -in assets/server1.key.enc -out assets/server.key -base64 -K $DECRYPTION_KEY_UAT -iv $DECRYPTION_IV_UAT # Decrypt the server key for UAT
-          - sfdx force:auth:jwt:grant --instanceurl $INSTANCEURL --clientid $CONSUMER_KEY_UAT --jwtkeyfile assets/server.key --username $USERNAME_UAT # Authenticate to UAT using JWT
+          - sfdx force:auth:jwt:grant --instanceurl $INSTANCEURL --clientid $CONSUMER_KEY_UAT --jwtkeyfile assets/server.key --username $USERNAME_UAT --setalias $ALIAS # Authenticate to UAT using JWT
           - sfdx force:mdapi:deploy --wait 10 --deploydir $MDAPI_DEPLOYDIR --targetusername $ALIAS --testlevel $TESTLEVEL # Deploy the metadata to UAT
           - echo "Deployment completed in UAT" # Debug statement
     sub_main: # This branch is for validating changes in Prod environment
